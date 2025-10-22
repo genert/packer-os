@@ -18,6 +18,14 @@ if [[ $DISTRO == "rhel" ]]; then
     echo "Unrecognized RHEL version, exiting"
     exit 1
   fi
+elif [[ $DISTRO == "ubuntu" ]]; then
+  if [[ ${VERSION} -eq 22 ]] ; then
+    # Currently there is no stig available for Ubuntu 22.04
+    curl -L -o ansible.zip https://dl.dod.cyber.mil/wp-content/uploads/stigs/zip/U_CAN_Ubuntu_20-04_LTS_V1R11_STIG_Ansible.zip
+  else
+    echo "Unrecognized Ubuntu version, exiting"
+    exit 1
+  fi
 fi
 unzip ansible.zip
 unzip *-ansible.zip
@@ -27,3 +35,15 @@ TASKS_FILE=$( find roles/*/tasks -name main.yml -type f )
 sed -i '/notify: do_reboot/d' $TASKS_FILE
 
 chmod +x enforce.sh && ./enforce.sh
+
+# FIPS enabling - conditional for Ubuntu dependent on subscription
+if [[ $DISTRO == "ubuntu" ]]; then
+  if [[ $UBUNTU_PRO_TOKEN ]]; then
+    pro attach $UBUNTU_PRO_TOKEN
+  fi
+  if [[ $(pro status --format json | jq '.attached') == "true" ]]; then
+    apt-get install ubuntu-advantage-tools -y
+    pro enable fips-updates --assume-yes
+    reboot
+  fi
+fi

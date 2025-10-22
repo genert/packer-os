@@ -15,12 +15,12 @@ This setup cuts down development time considerably as repeating the provisioning
 packer build -var-file=packer/rocky-9-amd64.pkrvars.hcl packer/os/os-install.pkr.hcl 
 ```
 
-### Oracle Linux 9
+### Ubuntu 22
 ```
-packer build -var-file=packer/oracle-9-amd64.pkrvars.hcl packer/os/os-install.pkr.hcl 
+packer build -var-file=packer/ubuntu-22-amd64.pkrvars.hcl packer/os/os-install.pkr.hcl 
 ```
 
-## Create RKE2 VM
+## Create RKE2 VM with Rocky Linux 9 OS
 ```
 packer build -var-file=packer/rocky-9-amd64.pkrvars.hcl packer/rke2/rke2.pkr.hcl
 ```

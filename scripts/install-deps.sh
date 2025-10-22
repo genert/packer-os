@@ -28,6 +28,15 @@ if [[ $DISTRO == "rhel" ]]; then
     echo "Unrecognized RHEL version, exiting"
     exit 1
   fi
+elif [[ $DISTRO == "ubuntu" ]]; then
+  echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+  apt-add-repository ppa:ansible/ansible -y
+  apt-get update -y && apt-get upgrade -y
+  apt-get install ansible unzip jq -y
+  # Install lvm2 for storage (e.x. rook/ceph)
+  apt-get install lvm2 -y
+  # Keep CA Certs up to date
+  update-ca-certificates
 fi
 
 # Ensure that ansible collections needed are installed 

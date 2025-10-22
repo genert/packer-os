@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-# Detect distro, rhel supported
-DISTRO=$( cat /etc/os-release | tr [:upper:] [:lower:] | grep -Poi '(rhel)' | uniq )
+# Detect distro, ubuntu or rhel supported
+DISTRO=$( cat /etc/os-release | tr [:upper:] [:lower:] | grep -Poi '(ubuntu|rhel)' | uniq )
 
 # cgroupsv2 for RKE2 + NeuVector
 sed -i 's/GRUB_CMDLINE_LINUX=\"/GRUB_CMDLINE_LINUX=\"systemd.unified_cgroup_hierarchy=1 /' /etc/default/grub
@@ -13,6 +13,8 @@ if [[ $DISTRO == "rhel" ]]; then
   else
     grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg
   fi
+elif [[ $DISTRO == "ubuntu" ]]; then
+  update-grub
 fi
 
 # If Network Manager is being used configure it to ignore calico/flannel network interfaces - https://docs.rke2.io/known_issues#networkmanager
