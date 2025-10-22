@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+# Detect distro, rhel supported
+DISTRO=$( cat /etc/os-release | tr [:upper:] [:lower:] | grep -Poi '(rhel)' | uniq )
+
+# Cleanup dependencies and utils that shouldn't be in final image
+if [[ $DISTRO == "rhel" ]]; then
+  dnf remove unzip -y
+  python3.11 -m pip uninstall ansible -y
+  dnf remove python3.11 python3.11-pip -y
+
+  # Install nfs-utils here since the STIG profile seems to uninstall it
+  dnf install nfs-utils -y
+fi
+
+cd && rm -rf /tmp/*

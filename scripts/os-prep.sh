@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+
+# Detect distro, rhel supported
+DISTRO=$( cat /etc/os-release | tr [:upper:] [:lower:] | grep -Poi '(rhel)' | uniq )
+
+# cgroupsv2 for RKE2 + NeuVector
+sed -i 's/GRUB_CMDLINE_LINUX=\"/GRUB_CMDLINE_LINUX=\"systemd.unified_cgroup_hierarchy=1 /' /etc/default/grub
+BOOT_TYPE=$([ -d /sys/firmware/efi ] && echo UEFI || echo BIOS)
+if [[ $DISTRO == "rhel" ]]; then
+  if [[ $BOOT_TYPE == "BIOS" ]]; then
+    grub2-mkconfig -o /boot/grub2/grub.cfg
+  else
+    grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg
+  fi
+fi
+
+# If Network Manager is being used configure it to ignore calico/flannel network interfaces - https://docs.rke2.io/known_issues#networkmanager
+if systemctl list-units --full | grep -Poi "NetworkManager.service" &>/dev/null; then
+  # Indent with tabs to prevent spaces in heredoc output
+	cat <<- EOF > /etc/NetworkManager/conf.d/rke2-canal.conf
+	[keyfile]
+	unmanaged-devices=interface-name:cali*;interface-name:flannel*
+	EOF
+  systemctl reload NetworkManager
+fi
+
+# If present, disable services that interfere with cluster networking - https://docs.rke2.io/known_issues#firewalld-conflicts-with-default-networking
+services_to_disable=("firewalld" "nm-cloud-setup" "nm-cloud-setup.timer")
+for service in "${services_to_disable[@]}"; do
+  if systemctl list-units --full -all | grep -Poi "$service.service" &>/dev/null; then
+    systemctl stop "$service.service"
+    systemctl disable "$service.service"
+  fi
+done
