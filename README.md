@@ -12,20 +12,17 @@ This setup cuts down development time considerably as repeating the provisioning
 
 ### Rocky Linux 9
 ```
-packer build -var-file=packer/rocky-9-amd64.pkrvars.hcl packer/os/os-install.pkr.hcl 
+PACKER_LOG=1 packer build -var-file=packer/rocky-9-amd64.pkrvars.hcl packer/os/os-install.pkr.hcl 
 ```
 
-### Ubuntu 22
+## Create RKE VM in QEMU copy-on-write 2 (QCOW2) fromat
+
+### Create RKE2 VM with Rocky Linux 9 OS
 ```
-packer build -var-file=packer/ubuntu-22-amd64.pkrvars.hcl packer/os/os-install.pkr.hcl 
+PACKER_LOG=1 packer build -var-file=packer/rocky-9-amd64.pkrvars.hcl packer/rke2/rke2.pkr.hcl
 ```
 
-## Create RKE2 VM with Rocky Linux 9 OS
-```
-packer build -var-file=packer/rocky-9-amd64.pkrvars.hcl packer/rke2/rke2.pkr.hcl
-```
-
-## Convert to VDI
+## Convert to Virtual disk image (VDI)
 ```
 qemu-img convert -O vdi ./build/rke2/rke2-rocky-9-amd64.qcow2 rke2-rocky-9-amd64.vdi
 ```

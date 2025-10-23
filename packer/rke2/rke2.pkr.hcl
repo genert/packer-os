@@ -61,6 +61,14 @@ build {
   }
 
   provisioner "shell" {
+    execute_command   = "chmod +x {{ .Path }}; sudo {{ .Vars }} {{ .Path }}"
+    script            = "./scripts/os-stig.sh"
+    expect_disconnect = true // Expect a restart due to FIPS reboot
+    timeout           = "20m"
+    pause_after       = "30s" // Give a grace period for the OS to restart
+  }
+
+  provisioner "shell" {
     execute_command = "chmod +x {{ .Path }}; sudo {{ .Vars }} {{ .Path }}"
     script          = "./scripts/os-prep.sh"
     timeout         = "15m"
@@ -85,6 +93,12 @@ build {
   provisioner "shell" {
     execute_command = "chmod +x {{ .Path }}; sudo {{ .Vars }} {{ .Path }}"
     script          = "./scripts/rke2-config.sh"
+    timeout         = "15m"
+  }
+
+  provisioner "shell" {
+    execute_command = "chmod +x {{ .Path }}; sudo {{ .Vars }} {{ .Path }}"
+    script          = "./scripts/cleanup-cloud-init.sh"
     timeout         = "15m"
   }
 }
