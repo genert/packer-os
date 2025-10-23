@@ -30,6 +30,15 @@ fi
 unzip ansible.zip
 unzip *-ansible.zip
 
+# Ensure an authselect profile is selected before Ansible enables features (RHEL9)
+if [[ $DISTRO == "rhel" ]]; then
+  if command -v authselect >/dev/null 2>&1; then
+    if ! authselect current >/dev/null 2>&1; then
+      authselect select sssd --force
+    fi
+  fi
+fi
+
 # Remove do_reboot handler from tasks file - VMs used to create templates from packer will be booted later for SELINUX changes to take effect
 TASKS_FILE=$( find roles/*/tasks -name main.yml -type f )
 sed -i '/notify: do_reboot/d' $TASKS_FILE

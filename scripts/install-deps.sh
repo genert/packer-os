@@ -10,7 +10,7 @@ if [[ $DISTRO == "rhel" ]]; then
   VERSION=$( cat /etc/os-release | grep -Poi '^version="[0-9]+\.[0-9]+' | cut -d\" -f2 | cut -d. -f1 )
 
   dnf update -y && dnf upgrade -y
-  dnf install -y tar gzip zstd unzip nfs-utils nfs4-acl-tools lvm2 iscsi-initiator-utils curl
+  dnf install -y tar gzip zstd unzip nfs-utils nfs4-acl-tools lvm2 iscsi-initiator-utils curl cloud-init
 
   # Install Ansible
   # Note: Latest versions of ansible are not available in RHEL 9 repos, need to use pip
@@ -32,7 +32,7 @@ elif [[ $DISTRO == "ubuntu" ]]; then
   echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
   apt-add-repository ppa:ansible/ansible -y
   apt-get update -y && apt-get upgrade -y
-  apt-get install ansible unzip jq -y
+  apt-get install ansible unzip jq cloud-init -y
   # Install lvm2 for storage (e.x. rook/ceph)
   apt-get install lvm2 -y
   # Keep CA Certs up to date
