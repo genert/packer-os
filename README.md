@@ -8,10 +8,15 @@ The build is split into two distinct stages:
 
 This setup cuts down development time considerably as repeating the provisioning stage becomes a lot faster.
 
+## Prerequisites
+- [Packer v1.14.2](https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli)
+- [QEMU](https://www.qemu.org/download/#linux)
+
 ## Prepare OS 
 
 ### Rocky Linux 9
 ```
+packer init packer/os/os-install.pkr.hcl
 PACKER_LOG=1 packer build -var-file=packer/rocky-9-amd64.pkrvars.hcl packer/os/os-install.pkr.hcl 
 ```
 
