@@ -31,3 +31,7 @@ fi
 sudo cp -f /usr/local/share/rke2/rke2-cis-sysctl.conf /etc/sysctl.d/60-rke2-cis.conf
 sudo systemctl restart systemd-sysctl
 sudo useradd -r -c "etcd user" -s /sbin/nologin -M etcd -U
+
+# Copy temporary containerd workaround configuration
+sudo mkdir -p /var/lib/rancher/rke2/agent/etc/containerd
+sudo mv -f $file_dir/config.toml.tmpl /var/lib/rancher/rke2/agent/etc/containerd/config.toml.tmpl

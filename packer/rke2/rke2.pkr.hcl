@@ -16,7 +16,7 @@ variable "vm_name" {
 variable "rke2_version" {
   type        = string
   description = "RKE2 version to install on the Image"
-  default     = "v1.34.1+rke2r1"
+  default     = "v1.32.3+rke2r1"
 }
 
 source "qemu" "base-img" {
@@ -52,20 +52,22 @@ build {
   }
 
   provisioner "shell" {
+    execute_command   = "chmod +x {{ .Path }}; sudo {{ .Vars }} {{ .Path }}"
+    script            = "./scripts/os-stig.sh"
+    expect_disconnect = true // Expect a restart due to FIPS reboot
+    timeout           = "20m"
+    pause_after       = "30s" // Give a grace period for the OS to restart
+  }
+
+
+  provisioner "shell" {
     environment_vars = [
       "INSTALL_RKE2_VERSION=${var.rke2_version}"
     ]
     execute_command = "chmod +x {{ .Path }}; sudo {{ .Vars }} {{ .Path }}"
     script          = "./scripts/rke2-install.sh"
     timeout         = "15m"
-  }
-
-  provisioner "shell" {
-    execute_command   = "chmod +x {{ .Path }}; sudo {{ .Vars }} {{ .Path }}"
-    script            = "./scripts/os-stig.sh"
-    expect_disconnect = true // Expect a restart due to FIPS reboot
-    timeout           = "20m"
-    pause_after       = "30s" // Give a grace period for the OS to restart
+    max_retries     = 3 # Occationally first-attempt will fail, potentially due to the restart mandated by os-stig.sh
   }
 
   provisioner "shell" {

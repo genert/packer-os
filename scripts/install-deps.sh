@@ -22,8 +22,8 @@ if [[ $DISTRO == "rhel" ]]; then
 
   #  Install rke2 selinux policy
   if [[ ${VERSION} -eq 9 ]] ; then
-    curl -LO "https://github.com/rancher/rke2-selinux/releases/download/v0.21.stable.1/rke2-selinux-0.21-1.el9.noarch.rpm"
-    dnf install rke2-selinux-0.21-1.el9.noarch.rpm -y
+    curl -LO "https://github.com/rancher/rke2-selinux/releases/download/v0.18.stable.1/rke2-selinux-0.18-1.el9.noarch.rpm"
+    dnf install rke2-selinux-0.18-1.el9.noarch.rpm -y
   else
     echo "Unrecognized RHEL version, exiting"
     exit 1
