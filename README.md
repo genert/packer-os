@@ -32,13 +32,17 @@ PACKER_LOG=1 packer build -var-file=packer/rocky-9-amd64.pkrvars.hcl packer/rke2
 qemu-img convert -O vdi ./build/rke2/rke2-rocky-9-amd64.qcow2 rke2-rocky-9-amd64.vdi
 ```
 
+## Run RKE2 locally (user/pw - packer/packer)
+```
+qemu-system-x86_64 -enable-kvm -cpu host -smp 2 -m 4096 -drive file=./build/rke2/rke2-rocky-9-amd64.qcow2,if=virtio,format=qcow2 -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::6443-:6443,hostfwd=tcp::9345-:9345 -device virtio-net-pci,netdev=net0
+```
 ## Booting RKE2
 RKE2 provides excellent tooling to build an RKE2 cluster, but when considering the STIG guides for RKE2 and deploying via IaC there is additional runtime configuration required. The images built with packer in this repo bake a helper script into `/root/rke2-startup.sh` to simplify this process. While this script is certainly not required for startup it can simplify setup if used during cloud-init as part of your IaC. The script must be run as root due to RKE2's requirements for setup.
 
 ## Script Parameters
 
 This script provides a number of parameters depending on your desired configuration:
-- `-t <token>`: RKE2 uses a secret token to join nodes to the cluster securely. This can be generated with something like openssl to create a secure random string.
+- `-t <token>`: RKE2 uses a secret token to join nodes to the cluster securely. This can be generated with something like openssl to create a secure random string `openssl rand -hex 32`.
 - `-s <join address>`: RKE2 initializes on a "bootstrap" node. The '-s' argument is the IP address or hostname of the bootstrap node or cluster control plane and is used by new nodes to join the cluster. When this is either unset or matches the IP of the host RKE2 is being started on, RKE2 will initialize as the bootstrap node.
 - `-a`: RKE2 has server or agent nodes. Agent nodes are Kubernetes worker nodes and do not host critical services like etcd or control-plane deployments.
 - `-T <dns address>`: By default cluster generated certificate is only valid for the loopback address and private IPs it can find on interfaces. When accessing cluster from a hostname or public IP, they need to be provided so they can be added to the cluster certificate.
@@ -48,7 +52,7 @@ This script provides a number of parameters depending on your desired configurat
 This script should be run on each node with a minimum of 3 server nodes for an HA setup, plus additional agent nodes as needed. Ideally you should also setup loadbalancing for server nodes (at minimum round-robin with DNS) so that a single node failure does not cause access issues.
 
 An example setup is provided below:
-- Node1: `/root/rke2-startup.sh -t <token> -s <node1_ip> -T <rke2_lb_address>`
+- Node1: `/root/rke2-startup.sh -t $(openssl rand -hex 32) -s <node1_ip> -T <rke2_lb_address>`
 - Node2: `/root/rke2-startup.sh -t <token> -s <rke2_lb_address> -T <rke2_dns_address>`
 - Node3: `/root/rke2-startup.sh -t <token> -s <rke2_lb_address> -T <rke2_dns_address>`
 - NodeN (agent nodes): `/root/rke2-startup.sh -t <token> -s <rke2_lb_address> -a`
