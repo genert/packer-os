@@ -1,0 +1,11 @@
+cat <<EOF > cloud-init-data/user-data
+#cloud-config
+hostname: rke2-server-01
+users:
+  - name: packer
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+ssh_pwauth: false
+runcmd:
+  - [ sh, -c, "echo 'Hello from the cloud-init Final Stage!' > /root/boot_done.txt" ]
+EOF

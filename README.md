@@ -33,9 +33,30 @@ qemu-img convert -O vdi ./build/rke2/rke2-rocky-9-amd64.qcow2 rke2-rocky-9-amd64
 ```
 
 ## Run RKE2 locally (user/pw - packer/packer)
+
 ```
-qemu-system-x86_64 -enable-kvm -cpu host -smp 2 -m 4096 -drive file=./build/rke2/rke2-rocky-9-amd64.qcow2,if=virtio,format=qcow2 -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::6443-:6443,hostfwd=tcp::9345-:9345 -device virtio-net-pci,netdev=net0
+genisoimage -o config.iso -V cidata -r -J cloud-init-data
+
+sudo mkdir -p /var/lib/libvirt/images/rke2
+sudo cp -p /home/firstnamelastname/packer-os/build/rke2/rke2-rocky-9-amd64.qcow2 /var/lib/libvirt/images/rke2/
+sudo cp -p /home/firstnamelastname/packer-os/config.iso /var/lib/libvirt/images/rke2/
+sudo chmod 644 /var/lib/libvirt/images/rke2/*
+
+virt-install --name rke2 \
+  --memory 8196 --vcpus 4 \
+  --disk path=/var/lib/libvirt/images/rke2/rke2-rocky-9-amd64.qcow2,format=qcow2 \
+  --disk path=/var/lib/libvirt/images/rke2/config.iso,device=cdrom \
+  --os-variant rocky9 \
+  --import \
+  --console pty,target.type=virtio
 ```
+
+To remove the VM:
+```
+virsh destroy rke2
+virsh undefine rke2 --storage vda
+```
+
 ## Booting RKE2
 RKE2 provides excellent tooling to build an RKE2 cluster, but when considering the STIG guides for RKE2 and deploying via IaC there is additional runtime configuration required. The images built with packer in this repo bake a helper script into `/root/rke2-startup.sh` to simplify this process. While this script is certainly not required for startup it can simplify setup if used during cloud-init as part of your IaC. The script must be run as root due to RKE2's requirements for setup.
 

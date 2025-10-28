@@ -24,7 +24,8 @@ echo "Updating RKE2 Config file"
 config_file=/etc/rancher/rke2/config.yaml
 
 node_ip=$(ip route get $(ip route show 0.0.0.0/0 | grep -oP 'via \K\S+') | grep -oP 'src \K\S+')
-if [ "$server_host" != "$node_ip" ]; then
+# Only set a server URL when a non-empty join address is provided and it is not the local node
+if [ -n "$server_host" ] && [ "$server_host" != "$node_ip" ]; then
   echo "Adding Cluster Join Server IP: ${server_host}"
   echo "server: https://${server_host}:9345" | tee -a $config_file >/dev/null
 fi
